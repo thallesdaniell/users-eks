@@ -1,1 +1,39 @@
-# users-eks
+# Giving users access to the EKS
+
+
+## const role
+`ROLE="{ \"Version\": \"2012-10-17\", \"Statement\": [ { \"Effect\": \"Allow\", \"Principal\": { \"AWS\": \"arn:aws:iam::XXXXXXXXXXXXXX:root\" }, \"Action\": \"sts:AssumeRole\" } ] }"`
+
+## create role [save output]
+`aws iam create-role --role-name KubectlRole --assume-role-policy-document "$ROLE" --output text --query 'Role.Arn'`
+
+## create file policy
+`echo '{ "Version": "2012-10-17", "Statement": [ { "Effect": "Allow", "Action": "eks:*", "Resource": "Describe*" } ] }' > /tmp/iam-role-policy`
+ 
+ ## update role with policy
+`aws iam put-role-policy --role-name KubectlRole --policy-name FullAccessPolicy --policy-document file:///tmp/iam-role-policy`
+
+
+## check assume role[use output role created arn:aws:iam:...]
+`aws sts assume-role --role-arn arn:aws:iam::XXXXXXXXXXXXXX:role/KubectlRole --role-session-name test`
+
+## edit aws-auth
+`kubectl edit configmap -n kube-system aws-auth`
+
+## add mapRoles and mapUsers
+```
+data:
+  mapRoles: |
+    - rolearn: arn:aws:iam::XXXXXXXXXXXXXX:role/KubectlRole
+      username: KubectlRole
+      groups:
+      - system:masters
+  mapUsers: |
+    - userarn: arn:aws:iam::XXXXXXXXXXXXXX:user/user-test@aws.com
+    username: user-test@aws.com
+    groups:
+      - system:masters
+```
+
+## update kubeconfig [use output role created arn:aws:iam:...]
+`aws eks update-kubeconfig --name housi --region us-east-1 --role-arn arn:aws:iam::xxxxxxxxxxxx:role/KubectlRole`
