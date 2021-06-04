@@ -35,5 +35,5 @@ data:
       - system:masters
 ```
 
-## update kubeconfig [use output role created arn:aws:iam:...]
-`aws eks update-kubeconfig --name housi --region us-east-1 --role-arn arn:aws:iam::xxxxxxxxxxxx:role/KubectlRole`
+## update kubeconfig 
+`aws eks update-kubeconfig --name housi --region us-east-1 --role-arn $ROLE`
