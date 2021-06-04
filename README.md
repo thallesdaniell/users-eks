@@ -2,10 +2,10 @@
 
 
 ## const role
-`ROLE="{ \"Version\": \"2012-10-17\", \"Statement\": [ { \"Effect\": \"Allow\", \"Principal\": { \"AWS\": \"arn:aws:iam::XXXXXXXXXXXXXX:root\" }, \"Action\": \"sts:AssumeRole\" } ] }"`
+`POLICY="{ \"Version\": \"2012-10-17\", \"Statement\": [ { \"Effect\": \"Allow\", \"Principal\": { \"AWS\": \"arn:aws:iam::XXXXXXXXXXXXXX:root\" }, \"Action\": \"sts:AssumeRole\" } ] }"`
 
-## create role [save output]
-`aws iam create-role --role-name KubectlRole --assume-role-policy-document "$ROLE" --output text --query 'Role.Arn'`
+## create role 
+`ROLE=$(aws iam create-role --role-name KubectlRole --assume-role-policy-document "$POLICY" --output text --query 'Role.Arn')`
 
 ## create file policy
 `echo '{ "Version": "2012-10-17", "Statement": [ { "Effect": "Allow", "Action": "eks:*", "Resource": "Describe*" } ] }' > /tmp/iam-role-policy`
@@ -14,8 +14,8 @@
 `aws iam put-role-policy --role-name KubectlRole --policy-name FullAccessPolicy --policy-document file:///tmp/iam-role-policy`
 
 
-## check assume role[use output role created arn:aws:iam:...]
-`aws sts assume-role --role-arn arn:aws:iam::XXXXXXXXXXXXXX:role/KubectlRole --role-session-name test`
+## check assume role
+`aws sts assume-role --role-arn $ROLE --role-session-name test`
 
 ## edit aws-auth
 `kubectl edit configmap -n kube-system aws-auth`
